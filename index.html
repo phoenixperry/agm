@@ -1,0 +1,1644 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Antigravity Machine</title>
+<meta name="description" content="The Antigravity Machine: escaping convergence through scaffolding artistic plurality in AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&amp;display=swap">
+<style>
+/* The Antigravity Machine: page styles.
+   Layout follows the house style: 1 Tokens, 2 Base, 3 Shared patterns,
+   4 Site frame, 5 Page parts, 6 Small screens. */
+
+/* ---- 1. Tokens ---------------------------------------------------- */
+
+:root {
+  /* Brand colours. Indigo on grey is about 9.6:1; violet on grey about 6:1. */
+  --indigo: #30348c;
+  --grey: #eae5e0;
+  --violet: #5c548c;
+  --veil: rgb(234 229 224 / 86%);
+  --veil-soft: rgb(234 229 224 / 72%);
+  --focus: var(--indigo);
+
+  /* Type. One family; weight and size carry the hierarchy. */
+  --font: "Space Grotesk", system-ui, sans-serif;
+  --text-small: 0.875rem;
+  --text-body: 1.0625rem;
+  --text-lead: clamp(1.0625rem, 1.6vw, 1.3125rem);
+  --text-item: 1.375rem;
+  --text-section: clamp(1.75rem, 3.2vw, 2.5rem);
+  --text-display: clamp(2rem, 3.6vw, 2.875rem);
+
+  /* Spacing on a 4px scale. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-14: 3.5rem;
+  --gutter: clamp(1.25rem, 5vw, 3.5rem);
+  --section-pad: clamp(1.5rem, 3vw, 2.5rem);
+  --measure: 70rem;
+}
+
+/* ---- 2. Base ------------------------------------------------------ */
+
+:where(html) {
+  scroll-behavior: smooth;
+}
+
+:where(body) {
+  margin: 0;
+  background: var(--grey);
+  color: var(--indigo);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+:where(h1, h2, h3, p, ul, ol, dl, dd) {
+  margin: 0;
+  padding: 0;
+}
+
+:where(ul, ol) {
+  list-style: none;
+}
+
+:where(a) {
+  color: var(--indigo);
+  text-underline-offset: 0.2em;
+}
+
+:where(a:hover) {
+  opacity: 0.6;
+}
+
+/* A visible focus ring everywhere, for keyboard users. */
+:where(a:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ---- 3. Shared patterns ------------------------------------------- */
+
+/* The centred column every section sits in. */
+.wrap {
+  box-sizing: border-box;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* The one button style, used for the call to action in the header. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 3rem;
+  padding: 0 var(--space-6);
+  background: var(--indigo);
+  color: var(--grey);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* A full-width band in inverted colours, grey on indigo: the hero and the
+   footer. The background script paints these bands itself, so it can draw
+   its letters in grey inside them; it adds is-animated to switch the CSS
+   background off. Without the script, the CSS background shows. */
+.inverted {
+  background: var(--indigo);
+  color: var(--grey);
+
+  --focus: var(--grey);
+}
+
+.inverted.is-animated {
+  background: transparent;
+}
+
+/* Secondary text: roles, places, affiliations. */
+.quiet {
+  color: var(--violet);
+  font-size: var(--text-small);
+  line-height: 1.5;
+}
+
+/* ---- 4. Site frame ------------------------------------------------ */
+
+/* The animated logo letters sit behind everything and ignore the pointer. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--veil);
+}
+
+.site-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-8);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  padding-bottom: var(--space-4);
+}
+
+/* The small mark with the name set beside its baseline. */
+.brand {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-end;
+  text-decoration: none;
+}
+
+.brand svg {
+  display: block;
+  width: 7.5rem;
+  height: auto;
+}
+
+.brand__name {
+  margin-bottom: 0.3rem;
+  font-size: var(--text-small);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-6);
+  align-items: center;
+}
+
+.site-nav a:not(.button) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.site-footer {
+  padding-top: var(--space-10);
+  padding-bottom: var(--space-10);
+}
+
+.site-footer svg {
+  display: block;
+  width: 7.5rem;
+  height: auto;
+}
+
+/* ---- 5. Page parts ------------------------------------------------ */
+
+/* Hero: two columns. The mark on the left, the headline beside it sharing
+   its top line, and the summary under the headline.
+   Stacks into one column on narrow screens (see Small screens). */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: var(--space-5) clamp(2rem, 4vw, var(--space-12));
+  align-items: start;
+  padding-top: clamp(2rem, 5vw, 3.5rem);
+  padding-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.hero__mark {
+  display: block;
+  grid-row: 1 / span 2;
+  color: var(--grey);   /* the SVG strokes with currentColor */
+  width: 100%;
+  height: auto;
+}
+
+/* Once the background script is running it draws the logo's letters in
+   this exact spot, so it can set them loose on scroll. The SVG stays in
+   the layout and in the accessibility tree; it is only made invisible. */
+.hero__mark.is-animated {
+  opacity: 0;
+}
+
+.hero h1 {
+  font-size: var(--text-display);
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  /* Even line lengths, so no single word is left on the last line. */
+  text-wrap: balance;
+}
+
+.hero p {
+  max-width: 41rem;
+  font-size: var(--text-lead);
+  line-height: 1.5;
+}
+
+/* One entrance on load: the hero parts rise in turn. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Stagger the entrance: headline, then summary. */
+.rise[data-step="2"] {
+  animation-delay: 160ms;
+}
+
+.rise[data-step="3"] {
+  animation-delay: 300ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+
+  :where(html) {
+    scroll-behavior: auto;
+  }
+}
+
+/* Sections: a real heading, then the content. Space, not lines, separates them. */
+.section__inner {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 2.5vw, var(--space-8));
+  padding: var(--section-pad) 0;
+}
+
+.section h2 {
+  font-size: var(--text-section);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+/* About: a large opening line beside the detail. */
+.about {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6) var(--space-14);
+}
+
+.about__lead {
+  flex: 1 1 20rem;
+  font-size: clamp(1.375rem, 2.4vw, 1.875rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.about__detail {
+  display: flex;
+  flex: 1 1 20rem;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Events: one row per event, soonest first. When on the left, what and
+   where on the right, lined up with the team rows below. */
+.events > li {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+  gap: var(--space-2) var(--space-12);
+  padding: var(--space-2) 0 var(--space-5);
+}
+
+.events__when {
+  font-size: var(--text-lead);
+  font-weight: 300;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.events__what {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 40rem;
+}
+
+.events h3 {
+  font-size: var(--text-item);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.events__link {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: var(--text-small);
+}
+
+/* What we are building: a grid of items.
+   The soft veil keeps text readable over the moving lines. */
+.outputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--min, 17.5rem), 1fr));
+  gap: var(--space-6) var(--space-5);
+}
+
+.outputs > * {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-3) 0;
+  background: linear-gradient(var(--veil-soft), transparent);
+}
+
+.outputs h3 {
+  font-size: var(--text-item);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.outputs p {
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* Team: one row per person. Who they are on the left, the bio on the
+   right at a comfortable line length. Stacks on narrow screens. */
+.roster {
+  display: flex;
+  flex-direction: column;
+}
+
+.roster > li {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(0, 2fr);
+  gap: var(--space-3) var(--space-12);
+  padding: var(--space-4) 0 var(--space-5);
+  background: linear-gradient(var(--veil-soft), transparent);
+}
+
+.roster__who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.roster h3 {
+  margin-bottom: var(--space-1);
+  font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* The role in the project: what a reader most needs after the name. */
+.roster__role {
+  font-size: var(--text-small);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.roster__bio {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 40rem;
+}
+
+.roster__link {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: var(--text-small);
+}
+
+/* Partners: a scannable three-column list of who, what they bring, and
+   where they are. Short entries, so rows rather than cards. */
+.partner-list > li {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(0, 1.6fr) minmax(9rem, 0.6fr);
+  gap: var(--space-1) var(--space-8);
+  align-items: baseline;
+  padding: var(--space-3) 0;
+}
+
+.partner-list h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.partner-list p {
+  line-height: 1.5;
+}
+
+/* The place lines up on the right edge, like the end column of a table. */
+.partner-list .quiet {
+  text-align: right;
+}
+
+.funding {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 47.5rem;
+}
+
+/* Mailing list dialog: inverted like the hero, grey on indigo. */
+.join-dialog {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 30rem);
+  padding: var(--space-8);
+  border: 0;
+  background: var(--indigo);
+  color: var(--grey);
+
+  --focus: var(--grey);
+}
+
+.join-dialog::backdrop {
+  background: rgb(234 229 224 / 80%);
+}
+
+.join-form,
+.join-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.join-form h2 {
+  font-size: var(--text-section);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.join-form label {
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
+.join-form input[type="email"] {
+  box-sizing: border-box;
+  min-height: 3rem;
+  margin-top: calc(var(--space-2) * -1);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: var(--grey);
+  color: var(--indigo);
+  font: inherit;
+}
+
+/* Tick box and its sentence, side by side. (Two classes, so it outranks
+   the bold field-label rule above.) */
+.join-form .join-form__consent {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.join-form__consent input {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.1rem 0 0;
+  accent-color: var(--grey);
+}
+
+.join-form__privacy {
+  font-size: var(--text-small);
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* The honeypot: off screen rather than hidden, so bots still find it. */
+.join-form__trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.join-form__status:empty {
+  display: none;
+}
+
+.join-form__actions {
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+/* The submit button, reversed for the indigo dialog. */
+.join-form .button {
+  border: 0;
+  background: var(--grey);
+  color: var(--indigo);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.join-form__close {
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+:where(.join-form input, .join-form button):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ---- 6. Small screens --------------------------------------------- */
+
+@media (width <= 56rem) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero__mark {
+    grid-row: auto;
+    width: min(100%, 38.75rem);
+  }
+
+  .partner-list > li {
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.6fr);
+  }
+
+  /* The name spans both rows, so a long name doesn't push the place down. */
+  .partner-list h3 {
+    grid-row: span 2;
+  }
+
+  .partner-list .quiet {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+@media (width <= 40rem) {
+  /* A sticky header this tall would cover a quarter of a phone screen,
+     so on small screens it scrolls away with the page. */
+  .site-header {
+    position: static;
+  }
+
+  .site-nav {
+    gap: 0 var(--space-5);
+  }
+
+  .events > li,
+  .roster > li,
+  .partner-list > li {
+    grid-template-columns: 1fr;
+  }
+
+  /* Undo the mid-width rules, so everything stacks. */
+  .partner-list h3 {
+    grid-row: auto;
+  }
+
+  .partner-list .quiet {
+    grid-column: auto;
+    text-align: left;
+  }
+}
+</style>
+</head>
+<body>
+<canvas class="backdrop" data-agm-bg="1" aria-hidden="true"></canvas>
+<div class="page">
+
+<header class="site-header">
+<div class="wrap site-header__inner">
+<a class="brand" href="#top" aria-label="Antigravity Machine, home">
+<svg viewBox="-8 -12 668.99 230.00" aria-hidden="true" focusable="false"><g fill="none" stroke="#30348C" stroke-width="1.13" stroke-linejoin="miter"><path d="M0 175 L87.5 0 L175 175Z" vector-effect="non-scaling-stroke"></path><path d="M259.99 35.00 A87.5 87.5 0 1 0 346.60 135.00" vector-effect="non-scaling-stroke"></path><path d="M346.60 135.00 L259.99 135.00 L259.99 110.00 L346.60 110.00 Z" vector-effect="non-scaling-stroke"></path><path d="M344.99 175 L432.49 0 L519.99 175Z" vector-effect="non-scaling-stroke"></path><path d="M477.99 175 L565.49 0 L652.99 175Z" vector-effect="non-scaling-stroke"></path></g></svg>
+<span class="brand__name">Antigravity<br>Machine</span>
+</a>
+<nav class="site-nav" aria-label="Sections">
+<a href="#about">About</a>
+<a href="#events">Events</a>
+<a href="#building">What we are building</a>
+<a href="#team">Team</a>
+<a href="#partners">Partners</a>
+<a class="button" href="#join" data-join-open>Join the mailing list</a>
+</nav>
+</div>
+</header>
+
+<!-- Mailing list sign-up. Opens from the header button. The form posts to
+     the Google Apps Script web app in mailing-list/ (see SETUP.md there).
+     data-endpoint: the web app URL. data-sitekey: the Turnstile site key
+     (the one below is Cloudflare's always-passing test key). -->
+<dialog id="join" class="join-dialog" aria-labelledby="join-title">
+<form class="join-form" data-endpoint="" data-sitekey="1x00000000000000000000AA" novalidate>
+<h2 id="join-title">Join the mailing list</h2>
+<div class="join-form__fields" data-join-fields>
+<p>Occasional updates on prototypes, events and calls to take part.</p>
+<label for="join-email">Email address</label>
+<input id="join-email" name="email" type="email" autocomplete="email" required>
+<!-- A field people never see; bots that fill it in are ignored. -->
+<div class="join-form__trap" aria-hidden="true">
+<label for="join-website">Leave this empty</label>
+<input id="join-website" name="website" type="text" tabindex="-1" autocomplete="off">
+</div>
+<label class="join-form__consent">
+<input type="checkbox" name="consent" value="yes" required>
+<span>I agree to receive occasional emails about The Antigravity Machine. I can unsubscribe at any time.</span>
+</label>
+<input type="hidden" name="consent_text" value="I agree to receive occasional emails about The Antigravity Machine. I can unsubscribe at any time.">
+<p class="join-form__privacy">We keep your email address in a spreadsheet at the University of the Arts London and use it only to send these updates.</p>
+<div class="join-form__captcha" data-join-captcha></div>
+</div>
+<p class="join-form__status" role="status" aria-live="polite" data-join-status></p>
+<div class="join-form__actions">
+<button class="button" type="submit" data-join-submit>Join</button>
+<button class="join-form__close" type="button" data-join-close>Close</button>
+</div>
+</form>
+</dialog>
+
+<main>
+
+<div class="inverted" data-agm-invert>
+<section id="top" class="wrap hero">
+<svg class="hero__mark" data-agm-hero viewBox="-8 -12 668.99 230.00" role="img" aria-label="Antigravity Machine"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="miter"><path d="M0 175 L87.5 0 L175 175Z" vector-effect="non-scaling-stroke"></path><path d="M259.99 35.00 A87.5 87.5 0 1 0 346.60 135.00" vector-effect="non-scaling-stroke"></path><path d="M346.60 135.00 L259.99 135.00 L259.99 110.00 L346.60 110.00 Z" vector-effect="non-scaling-stroke"></path><path d="M344.99 175 L432.49 0 L519.99 175Z" vector-effect="non-scaling-stroke"></path><path d="M477.99 175 L565.49 0 L652.99 175Z" vector-effect="non-scaling-stroke"></path></g></svg>
+<h1 class="rise" data-step="2">Escaping convergence through scaffolding artistic plurality in AI</h1>
+<p class="rise" data-step="3">Generative AI pulls work towards its most statistically likely outcome. We are building process-oriented tools that let artists branch, map and steer through a model, and that make that pull visible.</p>
+</section>
+</div>
+
+<section id="about" class="wrap section" aria-labelledby="about-heading">
+<div class="section__inner">
+<h2 id="about-heading">About</h2>
+<div class="about">
+<p class="about__lead">Most generative tools are optimised for a fast, resolved output. That favours whatever the model has seen most.</p>
+<div class="about__detail">
+<p>The Antigravity Machine treats a model's latent space as somewhere to explore: a space artists can move through, fork and return to, with the pressures towards convergence shown instead of hidden.</p>
+<p>Led by Dr Phoenix Perry at UAL's Creative Computing Institute, this twelve-month project began in September 2026 and brings together researchers at UAL, Simon Fraser University, York University and the University of Dundee. It is one of the projects funded through the AI Humanities Sandpit, part of Doing AI Differently.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="events" class="wrap section" aria-labelledby="events-heading">
+<div class="section__inner">
+<h2 id="events-heading">Events</h2>
+<ol class="events">
+<li>
+<p class="events__when"><time datetime="2026-11-18T18:00">Wednesday 18 November 2026</time><br>6pm to 8pm</p>
+<div class="events__what">
+<h3>Salon session with Matthew Plummer-Fernández</h3>
+<p>A free, hands-on workshop on the ways artists use AI beyond generating images, text or music, and on imagining AI tools shaped by what artists need. No technical experience needed.</p>
+<p class="quiet">The Social, Aviva Studios, Factory International, Manchester. Free, booking required. Ages 14 and over.</p>
+<a class="events__link" href="https://factoryinternational.org/whats-on/salon-session-matthew-plummer-fernandez/" target="_blank" rel="noopener">Book a free ticket at Factory International</a>
+</div>
+</li>
+</ol>
+</div>
+</section>
+
+<section id="building" class="wrap section" aria-labelledby="building-heading">
+<div class="section__inner">
+<h2 id="building-heading">What we are building</h2>
+<ul class="outputs">
+<li><h3>The software</h3><p>Open-source software built to run locally on consumer hardware, with non-linear forking, persistent journey mapping, controls for output indeterminacy, and attractor diagnostics.</p></li>
+<li><h3>Expansion packs</h3><p>Lightweight, artist-tuned add-ons that put the artist in control of which cultural traditions to draw on and which dominant patterns to resist.</p></li>
+<li><h3>IDEA framework</h3><p>Interpretive Depth Evaluation for Artistic AI. It assesses how well an AI tool supports a creator's own goals rather than scoring the art.</p></li>
+<li><h3>Critical Response Guide</h3><p>A companion guide for practitioners, based on Liz Lerman's Critical Response Process.</p></li>
+<li><h3>Installation and performance</h3><p>A public installation on the Media Wall at Factory International in Manchester, and a live performance at Venue 13 in the 2027 Edinburgh Festival Fringe, both made with the software.</p></li>
+<li><h3>Energy dashboard</h3><p>A live view of what each session costs in energy.</p></li>
+</ul>
+</div>
+</section>
+
+<section id="team" class="wrap section" aria-labelledby="team-heading">
+<div class="section__inner">
+<h2 id="team-heading">Team</h2>
+<ul class="roster">
+<li>
+<div class="roster__who">
+<h3>Dr Phoenix Perry</h3>
+<p class="roster__role">Project lead</p>
+<p class="quiet">Reader, UAL Creative Computing Institute</p>
+</div>
+<div class="roster__bio">
+<p>Phoenix makes embodied games, installations, and the tools behind them, working across human-computer interaction, interactive machine learning, and play. Founder of the Code Liberation Foundation and a co-creator of InteractML, they lead Held in Common and the group's work on The Antigravity Machine.</p>
+<a class="roster__link" href="https://phoenixperry.com" target="_blank" rel="noopener">phoenixperry.com</a>
+</div>
+</li>
+<li>
+<div class="roster__who">
+<h3>Prof Stephen DiPaola</h3>
+<p class="roster__role">Project co-lead, Canada</p>
+<p class="quiet">Professor, School of Interactive Arts and Technology, Simon Fraser University</p>
+</div>
+<div class="roster__bio">
+<p>Stephen works as both an artist and a scientist. He directs the iVizLab, which builds computational models of human expression, emotion and creativity, and he is known for AI-based computational creativity. His artwork has been shown at the Whitney Museum and the Smithsonian.</p>
+<a class="roster__link" href="https://www.sfu.ca/siat/people/research-faculty/steve-dipaola.html" target="_blank" rel="noopener">SFU profile</a>
+</div>
+</li>
+<li>
+<div class="roster__who">
+<h3>Dr Matthew Plummer-Fernández</h3>
+<p class="roster__role">Project co-lead, interaction design</p>
+<p class="quiet">Course Leader, BA Fine Art: Computational Arts, Camberwell College of Arts</p>
+</div>
+<div class="roster__bio">
+<p>A British/Colombian artist working across algorithmic systems, popular culture, and contemporary issues, in the traditions of generative art, critical design, and internet art. His works are held in the permanent collection of Centre Pompidou and received an Award of Distinction at Ars Electronica.</p>
+<a class="roster__link" href="https://www.plummerfernandez.com" target="_blank" rel="noopener">plummerfernandez.com</a>
+</div>
+</li>
+<li>
+<div class="roster__who">
+<h3>Ian Garrett</h3>
+<p class="roster__role">Project co-lead, sustainability and dissemination</p>
+<p class="quiet">Associate Professor of Ecological Design for Performance, York University</p>
+</div>
+<div class="roster__bio">
+<p>Ian is a designer, producer and researcher in sustainability in arts and culture. He directs the Centre for Sustainable Practice in the Arts and produces for Toasterlab, a mixed reality performance collective. He co-directs Venue 13 at the Edinburgh Festival Fringe, and his design practice centres on ecology and accessible mixed reality technologies.</p>
+<a class="roster__link" href="https://ampd.yorku.ca/profile/?p=100652" target="_blank" rel="noopener">York profile</a>
+</div>
+</li>
+<li>
+<div class="roster__who">
+<h3>Prof Charmi Patel</h3>
+<p class="roster__role">Project co-lead, evaluation and metadata justice</p>
+<p class="quiet">Chair and Professor of Strategic Human Resource Management, University of Dundee School of Business</p>
+</div>
+<div class="roster__bio">
+<p>Charmi is Associate Dean for Enterprise and Economic Transformation at Dundee. Her research on craft heritage and metadata justice has been funded by the AHRC and the British Academy.</p>
+<a class="roster__link" href="https://discovery.dundee.ac.uk/en/persons/charmi-patel/" target="_blank" rel="noopener">Dundee profile</a>
+</div>
+</li>
+</ul>
+</div>
+</section>
+
+<section id="partners" class="wrap section" aria-labelledby="partners-heading">
+<div class="section__inner">
+<h2 id="partners-heading">Partners</h2>
+<ul class="partner-list">
+<li><h3>ComfyUI</h3><p>Testing, technical advice and distribution</p><p class="quiet">San Francisco, USA</p></li>
+<li><h3>Factory International</h3><p>Exhibition, community engagement and outreach</p><p class="quiet">Manchester, UK</p></li>
+<li><h3>HerVisions</h3><p>Community engagement, dissemination and co-presenting the residency</p><p class="quiet">London, UK</p></li>
+<li><h3>Jerrold McGrath</h3><p>Advisory, dissemination and feedback</p><p class="quiet">Ontario, Canada</p></li>
+<li><h3>Piotr Mirowski</h3><p>Advisory and feedback</p><p class="quiet">London, UK</p></li>
+<li><h3>The Gardening Club &amp; The Sweetshop</h3><p>Testing, workshops and co-design</p><p class="quiet">London, UK</p></li>
+<li><h3>UKAI</h3><p>Artist engagement, testing, guidance and dissemination</p><p class="quiet">Toronto, Canada</p></li>
+<li><h3>Venue 13</h3><p>Testing, exhibition and dissemination</p><p class="quiet">Edinburgh, UK</p></li>
+</ul>
+</div>
+</section>
+
+<section id="funding" class="wrap section" aria-labelledby="funding-heading">
+<div class="section__inner">
+<h2 id="funding-heading">Funding</h2>
+<div class="funding">
+<p>The UK component of The Antigravity Machine is funded by the International Science Partnerships Fund (ISPF), through a grant awarded by the Arts and Humanities Research Council (AHRC), part of UK Research and Innovation (UKRI), grant reference UKRI6255.</p>
+<p>The Canadian component is funded by the Social Sciences and Humanities Research Council of Canada (SSHRC).</p>
+<p>The project was developed through the Artificial Intelligence Humanities Sandpits: Canada, UK and US, part of the Doing AI Differently initiative.</p>
+</div>
+</div>
+</section>
+
+</main>
+
+<!-- Logo only for now. Social and GitHub links will go here later. -->
+<footer class="inverted" data-agm-invert>
+<div class="wrap site-footer">
+<svg viewBox="-8 -12 668.99 230.00" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="1.13" stroke-linejoin="miter"><path d="M0 175 L87.5 0 L175 175Z" vector-effect="non-scaling-stroke"></path><path d="M259.99 35.00 A87.5 87.5 0 1 0 346.60 135.00" vector-effect="non-scaling-stroke"></path><path d="M346.60 135.00 L259.99 135.00 L259.99 110.00 L346.60 110.00 Z" vector-effect="non-scaling-stroke"></path><path d="M344.99 175 L432.49 0 L519.99 175Z" vector-effect="non-scaling-stroke"></path><path d="M477.99 175 L565.49 0 L652.99 175Z" vector-effect="non-scaling-stroke"></path></g></svg>
+</div>
+</footer>
+
+</div>
+<script>
+/* Antigravity Machine: background animation ("Slow Levitation")
+   ------------------------------------------------------------------
+   The letters of the logo (the A triangle, the open G with its bar,
+   and the M's two overlapping triangles) are carried up the page by a
+   slow, invisible air current. The philosophy behind it is written up
+   in animation-lab/philosophy.md; animation-lab/viewer.html lets you
+   tune the numbers below with sliders.
+
+   How it moves:
+   - The air is curl noise: a smooth noise surface turned into a swirling
+     flow with no sinks, so letters drift and wheel but never pile up.
+   - Each letter has inertia (it leans into a current for a few seconds),
+     a little lift (antigravity), and a depth: near letters are bigger,
+     darker and faster, far ones small, pale and slow.
+   - Letters turn with the eddies around them, not at a fixed rate.
+   - A second, slower noise field marks where the air is turbulent.
+     Letters come apart there and close up again in calm air, so making
+     and unmaking happen by place, not on a timer.
+   - Scrolling moves letters with the page in proportion to their depth
+     (gentle parallax). The cursor stirs the air where it passes.
+
+   The hero logo: while the page is at the top, its three letters are
+   drawn here, in full ink, exactly where the SVG logo sits. Scrolling
+   down sets them loose one at a time into the air. Scrolling back to the
+   top calls them home on a spring, and they close up as they arrive.
+   The SVG stays in the page (made invisible, still read by screen
+   readers), so the logo shows if this script never runs.
+
+   Inverted bands: put data-agm-invert on any band (the hero, the footer)
+   and this script paints its indigo itself and draws the letters inside
+   it in grey, so a letter changes colour exactly at the band's edge.
+
+   On a page: <canvas data-agm-bg="1"></canvas> starts it automatically.
+   Optional: data-agm-hero on the hero logo's <svg> (viewBox as in logo/).
+   Elsewhere (the viewer): window.AGMField.create(canvas, options).
+
+   index.html and animation-lab/viewer.html carry identical copies of
+   this file inline. Change all three together. */
+
+(function () {
+  'use strict';
+
+  /* ---- Settings: the numbers worth tweaking ---------------------- */
+
+  // Speeds are in CSS pixels per second, times in seconds.
+  var DEFAULTS = {
+    formsWide: 17,            // letters on screens 700px and wider
+    formsNarrow: 9,          // letters on narrower screens
+    minSize: 0.12,           // letter height range, as a fraction of the
+    maxSize: 0.34,           //   shorter screen edge (far to near)
+    opacity: 0.6,           // line opacity of the nearest letters (0 to 1)
+    accentShare: 0.28,       // share of letters drawn in green or pink (0 to 1)
+
+    flowStrength: 12,        // typical speed of the air
+    flowScale: 0.004,       // size of the eddies: smaller = broader currents
+    flowChange: 0.035,       // how fast the pattern of currents evolves
+    lift: 9,                 // upward drift, before each letter's own share
+    inertia: 3.3,            // seconds a letter takes to follow a new current
+    spin: 1,               // how strongly letters turn with the eddies
+
+    turbulence: 0.8,         // share of the page where letters come apart (0 to 1)
+    turbulenceScale: 0.0011, // size of the turbulent patches
+    turbulenceChange: 0.018, // how fast those patches move
+    looseness: 2,          // seconds to come apart or close up
+    breathe: 0.9,            // px of tremble on a whole letter's corners
+
+    scrollCarry: 0.3,        // share of the page's scroll speed near letters follow
+    stir: 30,                // strength of the swirl the cursor leaves
+    stirRadius: 180,         // px
+
+    heroRelease: [0.05, 0.11, 0.17], // scroll distance (fraction of screen
+                                     //   height) at which A, G, M come loose
+    heroFade: 1.4,           // seconds for a loose hero letter's ink to thin
+    heroReturn: 2.2,         // seconds for the spring that brings them home
+    heroLineWidth: 2.5       // ink width of the hero logo, as in the SVG
+  };
+
+  /* ---- Colours ----------------------------------------------------- */
+
+  // Brand palette accents, read off the palette swatch (approximate:
+  // replace with the exact values when we have them).
+  //   green #9DC254, pink #F4CFD0
+  //
+  // Two colour sets: the usual one (lines on grey) and the inverted one
+  // for bands (lines on indigo). Most letters use an indigo-family tint;
+  // a share (accentShare) are green or pink. A letter keeps its tint or
+  // accent in either set, so it keeps its identity crossing a band edge.
+  // `boost` lifts an accent's opacity where it would otherwise vanish.
+  // Pink is almost as light as the grey page, so on grey it is drawn in a
+  // deeper shade (#E2A0A6, not in the palette) and in true pink in bands.
+  var PALETTE = {
+    tints: [[152, 133, 166], [92, 84, 140], [68, 66, 140], [48, 52, 140]],
+    accents: { green: [157, 194, 84], pink: [226, 160, 166] },
+    boost: { green: 1.5, pink: 1.4 },
+    ink: [48, 52, 140]
+  };
+  var INVERTED = {
+    tints: [[234, 229, 224], [214, 206, 222], [196, 186, 216], [234, 229, 224]],
+    accents: { green: [157, 194, 84], pink: [244, 207, 208] },
+    boost: { green: 1.6, pink: 1.8 },
+    ink: [234, 229, 224],
+    background: [48, 52, 140]
+  };
+
+  /* ---- Logo geometry --------------------------------------------- */
+
+  // The letters, in the logo's own units (the SVG viewBox in logo/).
+  // Each letter is a list of strokes; a stroke is a list of points and
+  // says whether it closes back on itself.
+
+  // Sample the G's open arc into short straight pieces, so it can come
+  // apart piece by piece like the straight edges. The circle centre
+  // (259.99, 122.5) and radius 87.5 come from the SVG arc command.
+  function arcPoints(cx, cy, r, fromDeg, toDeg, pieces) {
+    var pts = [];
+    for (var i = 0; i <= pieces; i++) {
+      var a = (fromDeg + (toDeg - fromDeg) * (i / pieces)) * Math.PI / 180;
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    return pts;
+  }
+
+  var LETTERS = {
+    A: {
+      centre: [87.5, 87.5],
+      strokes: [{ closed: true, pts: [[0, 175], [87.5, 0], [175, 175]] }]
+    },
+    G: {
+      centre: [259.99, 122.5],
+      strokes: [
+        // From the top of the circle, anticlockwise round to just below
+        // the right-hand side: 261.8 degrees, leaving the G's mouth open.
+        { closed: false, pts: arcPoints(259.99, 122.5, 87.5, -90, -351.8, 30) },
+        { closed: true, pts: [[346.6, 135], [259.99, 135], [259.99, 110], [346.6, 110]] }
+      ]
+    },
+    M: {
+      centre: [498.99, 87.5],
+      strokes: [
+        { closed: true, pts: [[344.99, 175], [432.49, 0], [519.99, 175]] },
+        { closed: true, pts: [[477.99, 175], [565.49, 0], [652.99, 175]] }
+      ]
+    }
+  };
+  var KINDS = ['A', 'G', 'M'];
+
+  // The hero logo SVG's viewBox: x, y and width, in logo units.
+  var HERO_VIEWBOX = [-8, -12, 668.99];
+
+  // Turn each letter into points relative to its centre. Returns, per
+  // letter: its strokes (as lists of point numbers), its edges (pairs of
+  // point numbers, so shared corners move together) and its extent.
+  function buildShapes() {
+    var shapes = {};
+    KINDS.forEach(function (kind) {
+      var letter = LETTERS[kind];
+      var points = [], strokes = [], edges = [], extent = 0;
+      letter.strokes.forEach(function (stroke) {
+        var first = points.length;
+        stroke.pts.forEach(function (p) {
+          var q = [p[0] - letter.centre[0], p[1] - letter.centre[1]];
+          extent = Math.max(extent, Math.hypot(q[0], q[1]));
+          points.push(q);
+        });
+        var ids = [];
+        for (var i = 0; i < stroke.pts.length; i++) ids.push(first + i);
+        strokes.push({ ids: ids, closed: stroke.closed });
+        var count = stroke.closed ? ids.length : ids.length - 1;
+        for (var j = 0; j < count; j++) edges.push([ids[j], ids[(j + 1) % ids.length]]);
+      });
+      shapes[kind] = { points: points, strokes: strokes, edges: edges, extent: extent };
+    });
+    return shapes;
+  }
+  var SHAPES = buildShapes();
+
+  /* ---- Seeded randomness and noise -------------------------------- */
+
+  // A small, fast seeded random number generator (mulberry32).
+  // Returns a function giving numbers in [0, 1). Same seed, same sequence.
+  function makeRandom(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // Classic 3D gradient noise (Ken Perlin's improved noise), shuffled by
+  // the seeded random generator. Returns a function noise(x, y, z) giving
+  // smooth values roughly between -1 and 1.
+  function makeNoise(random) {
+    var perm = new Uint8Array(512), p = [], i;
+    for (i = 0; i < 256; i++) p.push(i);
+    for (i = 255; i > 0; i--) {
+      var j = Math.floor(random() * (i + 1)), tmp = p[i];
+      p[i] = p[j]; p[j] = tmp;
+    }
+    for (i = 0; i < 512; i++) perm[i] = p[i & 255];
+    function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+    function lerp(t, a, b) { return a + t * (b - a); }
+    function grad(hash, x, y, z) {
+      var h = hash & 15, u = h < 8 ? x : y, v = h < 4 ? y : (h === 12 || h === 14 ? x : z);
+      return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+    }
+    return function (x, y, z) {
+      var X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+      x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+      var u = fade(x), v = fade(y), w = fade(z);
+      var A = perm[X] + Y, AA = perm[A] + Z, AB = perm[A + 1] + Z;
+      var B = perm[X + 1] + Y, BA = perm[B] + Z, BB = perm[B + 1] + Z;
+      return lerp(w,
+        lerp(v, lerp(u, grad(perm[AA], x, y, z), grad(perm[BA], x - 1, y, z)),
+                lerp(u, grad(perm[AB], x, y - 1, z), grad(perm[BB], x - 1, y - 1, z))),
+        lerp(v, lerp(u, grad(perm[AA + 1], x, y, z - 1), grad(perm[BA + 1], x - 1, y, z - 1)),
+                lerp(u, grad(perm[AB + 1], x, y - 1, z - 1), grad(perm[BB + 1], x - 1, y - 1, z - 1))));
+    };
+  }
+
+  /* ---- Small helpers --------------------------------------------- */
+
+  function clamp(v, low, high) { return Math.max(low, Math.min(high, v)); }
+  function mix(a, b, t) { return a + (b - a) * t; }
+  function smoothstep(e0, e1, x) { var t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+  // How much of the gap to close this step, for an ease with time constant `tau`.
+  function ease(dt, tau) { return 1 - Math.exp(-dt / Math.max(tau, 0.0001)); }
+  // The shortest signed turn from angle `from` to angle `to`, in radians.
+  function turnBetween(from, to) {
+    var d = (to - from) % (Math.PI * 2);
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    return d;
+  }
+
+  /* ---- The field ---------------------------------------------------- */
+
+  // Create a field on a canvas. Options:
+  //   seed:        number for repeatable runs (default: random per visit)
+  //   settings:    overrides for DEFAULTS
+  //   managed:     true (default) = size the canvas to the window and run
+  //                its own frame loop; false = the host calls resize(),
+  //                step() and paint() itself (used by the viewer)
+  // Returns { settings, step(dt), paint(), resize(w, h), reseed(seed), ... }.
+  function create(canvas, options) {
+    options = options || {};
+    var managed = options.managed !== false;
+    var S = {};
+    Object.keys(DEFAULTS).forEach(function (k) { S[k] = DEFAULTS[k]; });
+    Object.keys(options.settings || {}).forEach(function (k) { S[k] = options.settings[k]; });
+
+    var ctx = canvas.getContext('2d');
+    var random, noise;
+    var W = 0, H = 0;
+    var forms = [];
+    var time = 0;
+    var scrollY = window.scrollY || 0, scrollVelocity = 0, lastScrollY = scrollY;
+    var mouse = { x: -1, y: -1, active: false };
+    var stirs = [];   // swirls the cursor has left: { x, y, strength }
+
+    var heroSvg = managed ? document.querySelector('svg[data-agm-hero]') : null;
+    var bands = managed ? Array.prototype.slice.call(document.querySelectorAll('[data-agm-invert]')) : [];
+
+    // Start (or restart) the random sources from a seed.
+    // Writes: random, noise.
+    function reseed(seed) {
+      random = makeRandom(seed);
+      noise = makeNoise(random);
+    }
+    reseed(options.seed !== undefined ? options.seed : Math.floor(Math.random() * 1e9));
+
+    function between(low, high) { return low + random() * (high - low); }
+
+    /* -- The air -- */
+
+    // The stream function: two octaves of noise over space and time.
+    // The flow is its rotated gradient, so it swirls without sinks.
+    function stream(x, y, t) {
+      var s = S.flowScale, z = t * S.flowChange;
+      return noise(x * s, y * s, z) + 0.45 * noise(x * s * 2.3 + 31.7, y * s * 2.3 - 12.4, z * 1.6 + 7.1);
+    }
+
+    // The air's velocity at (x, y), in px per second: the curl of the
+    // stream function (finite differences), plus any cursor swirls.
+    function air(x, y) {
+      var e = 4, t = time;
+      var dPdy = (stream(x, y + e, t) - stream(x, y - e, t)) / (2 * e);
+      var dPdx = (stream(x + e, y, t) - stream(x - e, y, t)) / (2 * e);
+      // Scale by 1 / flowScale so flowStrength is a speed in px/s whatever
+      // the eddy size.
+      var k = S.flowStrength / S.flowScale;
+      var vx = dPdy * k, vy = -dPdx * k;
+      var r2 = S.stirRadius * S.stirRadius;
+      for (var i = 0; i < stirs.length; i++) {
+        var st = stirs[i], dx = x - st.x, dy = y - st.y;
+        var d2 = dx * dx + dy * dy;
+        if (d2 > r2 * 4) continue;
+        // A small vortex: its speed falls off smoothly with distance.
+        var f = st.strength * Math.exp(-d2 / r2);
+        vx += -dy / S.stirRadius * f;
+        vy += dx / S.stirRadius * f;
+      }
+      return [vx, vy];
+    }
+
+    // How turbulent the air is at (x, y): 0 calm, 1 fully turbulent.
+    function turbulenceAt(x, y) {
+      var s = S.turbulenceScale;
+      var n = noise(x * s + 101.3, y * s - 57.9, time * S.turbulenceChange + 19.2) * 0.5 + 0.5;
+      // `turbulence` sets how much of the page counts as turbulent.
+      var edge = 1 - S.turbulence;
+      return smoothstep(edge - 0.08, edge + 0.08, n);
+    }
+
+    /* -- Letters -- */
+
+    // Make one letter at (x, y), or anywhere if not given.
+    function makeForm(kind, x, y) {
+      kind = kind || KINDS[Math.floor(random() * KINDS.length)];
+      var depth = Math.pow(random(), 0.8);       // 0 far, 1 near; slightly more near ones
+      var base = Math.min(W, H, 900);
+      var height = mix(S.minSize, S.maxSize, depth) * base;
+      var scale = height / 175;                  // px per logo unit; a letter is 175 units tall
+      return {
+        kind: kind,
+        depth: depth,
+        scale: scale,
+        radius: SHAPES[kind].extent * scale,
+        x: x === undefined ? between(0, W) : x,
+        y: y === undefined ? between(0, H) : y,
+        vx: 0, vy: 0,
+        angle: between(-Math.PI, Math.PI),
+        turn: 0,                                  // angular velocity, radians per second
+        lift: S.lift * between(0.5, 1.3),         // this letter's share of the lift
+        unmade: 0,                                // 0 whole, 1 fully apart
+        tint: Math.floor(random() * PALETTE.tints.length),
+        // Some letters are green or pink instead of an indigo tint.
+        accent: random() < S.accentShare ? (random() < 0.5 ? 'green' : 'pink') : null,
+        seed: between(0, 1000),
+        ink: 0,                                   // 1 = full logo ink (hero letters)
+        appear: 1,                                // fade-in on load (hero letters)
+        hero: null                                // hero letters only
+      };
+    }
+
+    // Size the field and set how many letters there are.
+    // Writes: canvas size (when managed), W, H, and the forms list.
+    function resize(width, height) {
+      W = width; H = height;
+      if (managed) {
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (W * H * dpr * dpr > 6000000) dpr = 1;   // keep very large screens cheap
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      var count = W < 700 ? S.formsNarrow : S.formsWide;
+      // The first three are one of each letter: the hero letters, when
+      // the page has a hero logo.
+      while (forms.length < count) forms.push(makeForm(KINDS[forms.length] || null));
+      forms.length = count;
+    }
+
+    /* -- Hero -- */
+
+    // Where each hero letter belongs right now, in screen pixels, read
+    // from the SVG's position (it moves as the page scrolls).
+    function heroAnchors() {
+      var rect = heroSvg.getBoundingClientRect();
+      if (!rect.width) return null;
+      var scale = rect.width / HERO_VIEWBOX[2], anchors = {};
+      KINDS.forEach(function (kind) {
+        var c = LETTERS[kind].centre;
+        anchors[kind] = {
+          x: rect.left + (c[0] - HERO_VIEWBOX[0]) * scale,
+          y: rect.top + (c[1] - HERO_VIEWBOX[1]) * scale,
+          scale: scale
+        };
+      });
+      return anchors;
+    }
+
+    // Make forms[0..2] the hero letters and hide the SVG they replace.
+    // States: held (on the logo, full ink), loose (in the air),
+    // returning (springing home). Writes: hero state, SVG class.
+    function setUpHero() {
+      if (!heroSvg) return;
+      var anchors = heroAnchors();
+      for (var i = 0; i < KINDS.length; i++) {
+        var f = forms[i];
+        var held = scrollY <= H * S.heroRelease[i];
+        f.hero = { state: held ? 'held' : 'loose' };
+        f.ink = held ? 1 : 0;
+        f.appear = 0;
+        if (held && anchors) {
+          var home = anchors[f.kind];
+          f.x = home.x; f.y = home.y; f.scale = home.scale; f.angle = 0;
+        }
+      }
+      // Hidden by opacity, so screen readers still find the logo's label.
+      heroSvg.classList.add('is-animated');
+    }
+
+    // Advance the hero letters. Writes: their state, position, ink, etc.
+    function updateHero(dt) {
+      var anchors = heroAnchors();
+      if (!anchors) return;
+      var w0 = 2 * Math.PI / S.heroReturn;   // the spring's natural frequency
+      for (var i = 0; i < KINDS.length; i++) {
+        var f = forms[i], hero = f.hero, home = anchors[f.kind];
+        var releaseAt = H * S.heroRelease[i];
+        f.appear = Math.min(1, f.appear + dt / 0.8);   // fade in on page load
+
+        if (hero.state === 'held') {
+          if (scrollY > releaseAt) {
+            // Set loose: a small upward push; the air does the rest.
+            hero.state = 'loose';
+            f.vx = between(-6, 6);
+            f.vy = between(-16, -9);
+            f.turn = between(-0.05, 0.05);
+            continue;
+          }
+          f.x = home.x; f.y = home.y; f.scale = home.scale;
+          f.radius = SHAPES[f.kind].extent * f.scale;
+          f.angle = 0; f.turn = 0; f.vx = 0; f.vy = 0;
+          f.unmade = 0; f.ink = 1;
+        } else if (hero.state === 'loose') {
+          f.ink *= Math.exp(-dt / S.heroFade);
+          // Back near the top: head home. Half the release distance, so a
+          // small scroll back and forth doesn't flicker between states.
+          if (scrollY < releaseAt * 0.5) hero.state = 'returning';
+        } else {
+          if (scrollY > releaseAt) { hero.state = 'loose'; continue; }
+          // A critically damped spring: arrives without overshooting.
+          f.vx += (w0 * w0 * (home.x - f.x) - 2 * w0 * f.vx) * dt;
+          f.vy += (w0 * w0 * (home.y - f.y) - 2 * w0 * f.vy) * dt;
+          f.x += f.vx * dt; f.y += f.vy * dt;
+          var da = turnBetween(f.angle, 0);
+          f.turn += (w0 * w0 * da - 2 * w0 * f.turn) * dt;
+          f.angle += f.turn * dt;
+          f.scale = mix(f.scale, home.scale, ease(dt, S.heroReturn / 4));
+          f.radius = SHAPES[f.kind].extent * f.scale;
+          f.unmade = mix(f.unmade, 0, ease(dt, 0.5));
+          var distance = Math.hypot(home.x - f.x, home.y - f.y);
+          f.ink = Math.max(f.ink, clamp(1 - distance / 160, 0, 1));
+          if (distance < 0.5 && Math.hypot(f.vx, f.vy) < 3 && Math.abs(da) < 0.005) {
+            hero.state = 'held';
+          }
+        }
+      }
+    }
+
+    /* -- Moving the letters -- */
+
+    // Advance one letter riding the air. Writes: its motion and state;
+    // may replace forms[i] with a new letter when one leaves the screen.
+    function updateDrifting(f, i, dt) {
+      var pace = mix(0.55, 1, f.depth);          // far letters move slower
+
+      // Follow the air with inertia, plus lift and a share of the scroll.
+      var v = air(f.x, f.y);
+      var targetX = v[0] * pace;
+      var targetY = v[1] * pace - f.lift * pace - scrollVelocity * S.scrollCarry * mix(0.4, 1, f.depth);
+      var k = ease(dt, S.inertia);
+      f.vx += (targetX - f.vx) * k;
+      f.vy += (targetY - f.vy) * k;
+      f.x += f.vx * dt;
+      f.y += f.vy * dt;
+
+      // Turn with the eddies: sample the air either side of the letter
+      // and read off how it is rotating there (its vorticity).
+      var r = Math.max(24, f.radius * 0.6);
+      var right = air(f.x + r, f.y), left = air(f.x - r, f.y);
+      var below = air(f.x, f.y + r), above = air(f.x, f.y - r);
+      var vorticity = (right[1] - left[1]) / (2 * r) - (below[0] - above[0]) / (2 * r);
+      f.turn += (vorticity * 0.5 * S.spin * pace - f.turn) * ease(dt, S.inertia * 1.5);
+      f.angle += f.turn * dt;
+
+      // Come apart in turbulent air, and near the cursor; close up in calm air.
+      var target = turbulenceAt(f.x, f.y);
+      if (mouse.active) {
+        var dm = Math.hypot(f.x - mouse.x, f.y - mouse.y);
+        target = Math.max(target, 1 - smoothstep(f.radius * 0.6, f.radius * 1.8, dm));
+      }
+      f.unmade += (target - f.unmade) * ease(dt, S.looseness);
+
+      // Leaving the screen: letters that float off the top come back in
+      // from below at a new spot; sideways exits wrap round. Ordinary
+      // letters come back as a new letter (new kind, size and depth).
+      var pad = f.radius * 1.3;
+      var wrapped = false;
+      if (f.y < -pad) { f.y = H + pad; f.x = between(0, W); wrapped = true; }
+      else if (f.y > H + pad) { f.y = -pad; f.x = between(0, W); wrapped = true; }
+      if (f.x < -pad) { f.x = W + pad; wrapped = true; }
+      else if (f.x > W + pad) { f.x = -pad; wrapped = true; }
+      if (wrapped && i >= KINDS.length) {
+        var next = makeForm(null, f.x, f.y);
+        next.vx = f.vx; next.vy = f.vy;
+        forms[i] = next;
+      }
+    }
+
+    // Advance the whole field by dt seconds.
+    function step(dt) {
+      dt = clamp(dt, 0, 0.05);   // a background tab mustn't make things jump
+      time += dt;
+
+      // Scroll speed, smoothed so a jumpy mouse wheel reads as a glide.
+      if (managed) {
+        scrollY = window.scrollY || 0;
+        var raw = dt > 0 ? (scrollY - lastScrollY) / dt : 0;
+        lastScrollY = scrollY;
+        scrollVelocity += (raw - scrollVelocity) * ease(dt, 0.25);
+      }
+
+      // Cursor swirls fade over a couple of seconds.
+      for (var s = stirs.length - 1; s >= 0; s--) {
+        stirs[s].strength *= Math.exp(-dt / 1.6);
+        if (Math.abs(stirs[s].strength) < 0.5) stirs.splice(s, 1);
+      }
+
+      if (heroSvg) updateHero(dt);
+      for (var i = 0; i < forms.length; i++) {
+        var f = forms[i];
+        if (!f.hero || f.hero.state === 'loose') updateDrifting(f, i, dt);
+      }
+    }
+
+    /* -- Drawing -- */
+
+    // Draw one letter in a palette. Whole letters are joined paths with
+    // the faintest tremble at their corners. As a letter comes apart, each
+    // edge shortens from both ends, drifts outward, bows into a curve and
+    // wanders on its own noise.
+    function drawForm(f, palette) {
+      var shape = SHAPES[f.kind], s = f.scale, un = f.unmade;
+      var held = f.hero && f.hero.state === 'held';
+      var depthAlpha = mix(0.45, 1, f.depth);
+      var boost = f.accent ? palette.boost[f.accent] : 1;
+      var alpha = mix(Math.min(1, S.opacity * boost) * depthAlpha * (1 - un * 0.5), 1, f.ink) * f.appear;
+      if (alpha < 0.004) return;
+      var tint = f.accent ? palette.accents[f.accent] : palette.tints[f.tint];
+      var colour = [0, 1, 2].map(function (c) { return Math.round(mix(tint[c], palette.ink[c], f.ink)); });
+
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.angle);
+      ctx.strokeStyle = 'rgba(' + colour.join(',') + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = mix(1.1, S.heroLineWidth, f.ink);
+      ctx.lineJoin = 'miter';
+      ctx.lineCap = 'round';
+
+      // Every corner trembles a little on its own noise; more as it loosens.
+      var t = time * 0.35;
+      var wobble = held ? 0 : S.breathe + un * f.radius * 0.07;
+      var pts = shape.points.map(function (p, n) {
+        return [
+          p[0] * s + noise(f.seed, n * 0.37, t) * wobble,
+          p[1] * s + noise(f.seed + 50, n * 0.37, t) * wobble
+        ];
+      });
+
+      ctx.beginPath();
+      if (un < 0.01) {
+        shape.strokes.forEach(function (stroke) {
+          stroke.ids.forEach(function (id, n) {
+            if (n === 0) ctx.moveTo(pts[id][0], pts[id][1]);
+            else ctx.lineTo(pts[id][0], pts[id][1]);
+          });
+          if (stroke.closed) ctx.closePath();
+        });
+      } else {
+        // Ease the coming-apart in, so the first loosening is gentle.
+        var u = un * un * (3 - 2 * un);
+        var gap = u * 0.38, push = u * f.radius * 0.42, bow = u * 0.22;
+        shape.edges.forEach(function (edge, n) {
+          var a = pts[edge[0]], b = pts[edge[1]];
+          var mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+          var len = Math.hypot(mx, my) || 1;
+          // Each edge drifts outward by its own amount.
+          var drift = push * (0.6 + 0.8 * (noise(f.seed + n * 1.3, t * 0.7, 3.1) * 0.5 + 0.5));
+          var ox = mx / len * drift, oy = my / len * drift;
+          var ax = a[0] + (b[0] - a[0]) * gap * 0.5 + ox, ay = a[1] + (b[1] - a[1]) * gap * 0.5 + oy;
+          var bx = b[0] - (b[0] - a[0]) * gap * 0.5 + ox, by = b[1] - (b[1] - a[1]) * gap * 0.5 + oy;
+          // Bow the edge: a control point pushed sideways on noise.
+          var ex = bx - ax, ey = by - ay;
+          var side = noise(f.seed - n * 0.9, t * 0.6, 8.7) * bow;
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo((ax + bx) / 2 - ey * side, (ay + by) / 2 + ex * side, bx, by);
+        });
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Paint one inverted band: its indigo, then the letters in grey,
+    // clipped to the band so nothing spills over its edges.
+    function paintInverted(element) {
+      var band = element.getBoundingClientRect();
+      if (band.bottom <= 0 || band.top >= H) return;   // off screen
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(band.left, band.top, band.width, band.height);
+      ctx.clip();
+      ctx.fillStyle = 'rgb(' + INVERTED.background.join(',') + ')';
+      ctx.fillRect(band.left, band.top, band.width, band.height);
+      for (var i = 0; i < forms.length; i++) drawForm(forms[i], INVERTED);
+      ctx.restore();
+    }
+
+    // Draw the field: everything in the usual colours, then each inverted
+    // band on screen. Far letters first, so near ones sit on top.
+    function paint() {
+      ctx.clearRect(0, 0, W, H);
+      var order = forms.slice().sort(function (a, b) { return a.depth - b.depth; });
+      for (var i = 0; i < order.length; i++) drawForm(order[i], PALETTE);
+      bands.forEach(paintInverted);
+    }
+
+    /* -- Input -- */
+
+    // The cursor stirs the air: as it moves it leaves small swirls whose
+    // strength follows how fast it was moving. Writes: mouse, stirs.
+    function onPointer(x, y) {
+      var speed = mouse.active ? Math.hypot(x - mouse.x, y - mouse.y) : 0;
+      mouse.x = x; mouse.y = y; mouse.active = true;
+      if (speed > 2) {
+        var last = stirs[stirs.length - 1];
+        if (!last || Math.hypot(last.x - x, last.y - y) > S.stirRadius * 0.5) {
+          stirs.push({ x: x, y: y, strength: Math.min(S.stir, speed * 1.5) * (random() < 0.5 ? -1 : 1) });
+          if (stirs.length > 6) stirs.shift();
+        }
+      }
+    }
+
+    var field = {
+      settings: S,
+      step: step,
+      paint: paint,
+      resize: resize,
+      // Restart with a new seed: new noise, new letters. Writes: everything.
+      reseed: function (seed) { reseed(seed); forms = []; time = 0; stirs = []; resize(W, H); },
+      pointer: onPointer,
+      pointerLeave: function () { mouse.active = false; },
+      // Read-only view of the letters, for the viewer and tests.
+      letters: function () { return forms.slice(); }
+    };
+
+    if (managed) {
+      window.addEventListener('resize', function () { resize(window.innerWidth, window.innerHeight); });
+      window.addEventListener('pointermove', function (e) { onPointer(e.clientX, e.clientY); });
+      document.addEventListener('pointerleave', field.pointerLeave);
+      bands.forEach(function (band) { band.classList.add('is-animated'); });
+      resize(window.innerWidth || canvas.clientWidth || 1200, window.innerHeight || canvas.clientHeight || 800);
+      setUpHero();
+      var last = 0;
+      var frame = function (now) {
+        step(last ? (now - last) / 1000 : 0);
+        last = now;
+        paint();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    }
+    return field;
+  }
+
+  window.AGMField = { create: create, DEFAULTS: DEFAULTS };
+
+  // On a page with the background canvas, start automatically.
+  function boot() {
+    var canvas = document.querySelector('canvas[data-agm-bg]');
+    if (canvas && canvas.getContext) create(canvas);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+</script>
+<script>
+/* Antigravity Machine: mailing list sign-up dialog.
+   Opens from the header button, loads the Cloudflare Turnstile CAPTCHA
+   only when the dialog first opens (so ordinary visits make no request
+   to Cloudflare), and posts the form to the Google Apps Script web app.
+   The Apps Script checks the CAPTCHA again with Cloudflare before saving. */
+(function () {
+  'use strict';
+  var dialog = document.getElementById('join');
+  if (!dialog || typeof dialog.showModal !== 'function') return;
+
+  var form = dialog.querySelector('form');
+  var fields = form.querySelector('[data-join-fields]');
+  var status = form.querySelector('[data-join-status]');
+  var submit = form.querySelector('[data-join-submit]');
+  var captchaBox = form.querySelector('[data-join-captcha]');
+  var widgetId = null;
+
+  // Plain sentences for each error the Apps Script can send back.
+  var MESSAGES = {
+    invalid_email: 'Enter an email address like name@example.com.',
+    no_consent: 'Tick the box to agree to receive emails.',
+    captcha: 'The check didn’t go through. Try it again.',
+    busy: 'Lots of people are signing up right now. Try again in a minute.',
+    network: 'We couldn’t reach the mailing list. Check your connection and try again.',
+    not_connected: 'The mailing list isn’t connected yet. Try again soon.'
+  };
+
+  // Show a message in the status line (read out by screen readers).
+  function say(text) { status.textContent = text; }
+
+  // Draw the CAPTCHA into its box, once Turnstile has loaded.
+  // Writes: widgetId.
+  function renderCaptcha() {
+    if (widgetId !== null || !window.turnstile) return;
+    widgetId = window.turnstile.render(captchaBox, {
+      sitekey: form.dataset.sitekey,
+      theme: 'dark',
+      size: 'flexible',
+      action: 'signup'
+    });
+  }
+
+  // Load Turnstile the first time the dialog opens. Writes: a script tag.
+  function loadCaptcha() {
+    if (window.turnstile) { renderCaptcha(); return; }
+    if (document.getElementById('turnstile-script')) return;
+    window.agmCaptchaReady = renderCaptcha;
+    var script = document.createElement('script');
+    script.id = 'turnstile-script';
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=agmCaptchaReady';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+
+  document.querySelectorAll('[data-join-open]').forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      dialog.showModal();
+      loadCaptcha();
+    });
+  });
+  form.querySelector('[data-join-close]').addEventListener('click', function () { dialog.close(); });
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var email = form.elements.email, consent = form.elements.consent;
+    if (!email.value.trim() || !email.checkValidity()) { say(MESSAGES.invalid_email); email.focus(); return; }
+    if (!consent.checked) { say(MESSAGES.no_consent); consent.focus(); return; }
+    if (!form.dataset.endpoint) { say(MESSAGES.not_connected); return; }
+    var token = window.turnstile && widgetId !== null ? window.turnstile.getResponse(widgetId) : '';
+    if (!token) { say('Complete the check above, then press Join.'); return; }
+
+    submit.disabled = true;
+    say('Joining…');
+    // A plain form-encoded POST, so the browser doesn't need a CORS
+    // preflight, which Apps Script can't answer.
+    fetch(form.dataset.endpoint, { method: 'POST', body: new URLSearchParams(new FormData(form)) })
+      .then(function (response) { return response.json(); })
+      .then(function (result) {
+        if (result.ok) {
+          fields.hidden = true;
+          submit.hidden = true;
+          say('You’ve joined the mailing list. Thank you.');
+        } else {
+          say(MESSAGES[result.error] || MESSAGES.network);
+        }
+      })
+      .catch(function () { say(MESSAGES.network); })
+      .then(function () {
+        submit.disabled = false;
+        // A CAPTCHA token works once, so get a fresh one for any retry.
+        if (window.turnstile && widgetId !== null && !submit.hidden) window.turnstile.reset(widgetId);
+      });
+  });
+})();
+</script>
+</body>
+</html>

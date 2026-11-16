@@ -1,0 +1,679 @@
+/* Antigravity Machine: background animation ("Slow Levitation")
+   ------------------------------------------------------------------
+   The letters of the logo (the A triangle, the open G with its bar,
+   and the M's two overlapping triangles) are carried up the page by a
+   slow, invisible air current. The philosophy behind it is written up
+   in animation-lab/philosophy.md; animation-lab/viewer.html lets you
+   tune the numbers below with sliders.
+
+   How it moves:
+   - The air is curl noise: a smooth noise surface turned into a swirling
+     flow with no sinks, so letters drift and wheel but never pile up.
+   - Each letter has inertia (it leans into a current for a few seconds),
+     a little lift (antigravity), and a depth: near letters are bigger,
+     darker and faster, far ones small, pale and slow.
+   - Letters turn with the eddies around them, not at a fixed rate.
+   - A second, slower noise field marks where the air is turbulent.
+     Letters come apart there and close up again in calm air, so making
+     and unmaking happen by place, not on a timer.
+   - Scrolling moves letters with the page in proportion to their depth
+     (gentle parallax). The cursor stirs the air where it passes.
+
+   The hero logo: while the page is at the top, its three letters are
+   drawn here, in full ink, exactly where the SVG logo sits. Scrolling
+   down sets them loose one at a time into the air. Scrolling back to the
+   top calls them home on a spring, and they close up as they arrive.
+   The SVG stays in the page (made invisible, still read by screen
+   readers), so the logo shows if this script never runs.
+
+   Inverted bands: put data-agm-invert on any band (the hero, the footer)
+   and this script paints its indigo itself and draws the letters inside
+   it in grey, so a letter changes colour exactly at the band's edge.
+
+   On a page: <canvas data-agm-bg="1"></canvas> starts it automatically.
+   Optional: data-agm-hero on the hero logo's <svg> (viewBox as in logo/).
+   Elsewhere (the viewer): window.AGMField.create(canvas, options).
+
+   index.html and animation-lab/viewer.html carry identical copies of
+   this file inline. Change all three together. */
+
+(function () {
+  'use strict';
+
+  /* ---- Settings: the numbers worth tweaking ---------------------- */
+
+  // Speeds are in CSS pixels per second, times in seconds.
+  var DEFAULTS = {
+    formsWide: 17,            // letters on screens 700px and wider
+    formsNarrow: 9,          // letters on narrower screens
+    minSize: 0.12,           // letter height range, as a fraction of the
+    maxSize: 0.34,           //   shorter screen edge (far to near)
+    opacity: 0.6,           // line opacity of the nearest letters (0 to 1)
+    accentShare: 0.28,       // share of letters drawn in green or pink (0 to 1)
+
+    flowStrength: 12,        // typical speed of the air
+    flowScale: 0.004,       // size of the eddies: smaller = broader currents
+    flowChange: 0.035,       // how fast the pattern of currents evolves
+    lift: 9,                 // upward drift, before each letter's own share
+    inertia: 3.3,            // seconds a letter takes to follow a new current
+    spin: 1,               // how strongly letters turn with the eddies
+
+    turbulence: 0.8,         // share of the page where letters come apart (0 to 1)
+    turbulenceScale: 0.0011, // size of the turbulent patches
+    turbulenceChange: 0.018, // how fast those patches move
+    looseness: 2,          // seconds to come apart or close up
+    breathe: 0.9,            // px of tremble on a whole letter's corners
+
+    scrollCarry: 0.3,        // share of the page's scroll speed near letters follow
+    stir: 30,                // strength of the swirl the cursor leaves
+    stirRadius: 180,         // px
+
+    heroRelease: [0.05, 0.11, 0.17], // scroll distance (fraction of screen
+                                     //   height) at which A, G, M come loose
+    heroFade: 1.4,           // seconds for a loose hero letter's ink to thin
+    heroReturn: 2.2,         // seconds for the spring that brings them home
+    heroLineWidth: 2.5       // ink width of the hero logo, as in the SVG
+  };
+
+  /* ---- Colours ----------------------------------------------------- */
+
+  // Brand palette accents, read off the palette swatch (approximate:
+  // replace with the exact values when we have them).
+  //   green #9DC254, pink #F4CFD0
+  //
+  // Two colour sets: the usual one (lines on grey) and the inverted one
+  // for bands (lines on indigo). Most letters use an indigo-family tint;
+  // a share (accentShare) are green or pink. A letter keeps its tint or
+  // accent in either set, so it keeps its identity crossing a band edge.
+  // `boost` lifts an accent's opacity where it would otherwise vanish.
+  // Pink is almost as light as the grey page, so on grey it is drawn in a
+  // deeper shade (#E2A0A6, not in the palette) and in true pink in bands.
+  var PALETTE = {
+    tints: [[152, 133, 166], [92, 84, 140], [68, 66, 140], [48, 52, 140]],
+    accents: { green: [157, 194, 84], pink: [226, 160, 166] },
+    boost: { green: 1.5, pink: 1.4 },
+    ink: [48, 52, 140]
+  };
+  var INVERTED = {
+    tints: [[234, 229, 224], [214, 206, 222], [196, 186, 216], [234, 229, 224]],
+    accents: { green: [157, 194, 84], pink: [244, 207, 208] },
+    boost: { green: 1.6, pink: 1.8 },
+    ink: [234, 229, 224],
+    background: [48, 52, 140]
+  };
+
+  /* ---- Logo geometry --------------------------------------------- */
+
+  // The letters, in the logo's own units (the SVG viewBox in logo/).
+  // Each letter is a list of strokes; a stroke is a list of points and
+  // says whether it closes back on itself.
+
+  // Sample the G's open arc into short straight pieces, so it can come
+  // apart piece by piece like the straight edges. The circle centre
+  // (259.99, 122.5) and radius 87.5 come from the SVG arc command.
+  function arcPoints(cx, cy, r, fromDeg, toDeg, pieces) {
+    var pts = [];
+    for (var i = 0; i <= pieces; i++) {
+      var a = (fromDeg + (toDeg - fromDeg) * (i / pieces)) * Math.PI / 180;
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+    }
+    return pts;
+  }
+
+  var LETTERS = {
+    A: {
+      centre: [87.5, 87.5],
+      strokes: [{ closed: true, pts: [[0, 175], [87.5, 0], [175, 175]] }]
+    },
+    G: {
+      centre: [259.99, 122.5],
+      strokes: [
+        // From the top of the circle, anticlockwise round to just below
+        // the right-hand side: 261.8 degrees, leaving the G's mouth open.
+        { closed: false, pts: arcPoints(259.99, 122.5, 87.5, -90, -351.8, 30) },
+        { closed: true, pts: [[346.6, 135], [259.99, 135], [259.99, 110], [346.6, 110]] }
+      ]
+    },
+    M: {
+      centre: [498.99, 87.5],
+      strokes: [
+        { closed: true, pts: [[344.99, 175], [432.49, 0], [519.99, 175]] },
+        { closed: true, pts: [[477.99, 175], [565.49, 0], [652.99, 175]] }
+      ]
+    }
+  };
+  var KINDS = ['A', 'G', 'M'];
+
+  // The hero logo SVG's viewBox: x, y and width, in logo units.
+  var HERO_VIEWBOX = [-8, -12, 668.99];
+
+  // Turn each letter into points relative to its centre. Returns, per
+  // letter: its strokes (as lists of point numbers), its edges (pairs of
+  // point numbers, so shared corners move together) and its extent.
+  function buildShapes() {
+    var shapes = {};
+    KINDS.forEach(function (kind) {
+      var letter = LETTERS[kind];
+      var points = [], strokes = [], edges = [], extent = 0;
+      letter.strokes.forEach(function (stroke) {
+        var first = points.length;
+        stroke.pts.forEach(function (p) {
+          var q = [p[0] - letter.centre[0], p[1] - letter.centre[1]];
+          extent = Math.max(extent, Math.hypot(q[0], q[1]));
+          points.push(q);
+        });
+        var ids = [];
+        for (var i = 0; i < stroke.pts.length; i++) ids.push(first + i);
+        strokes.push({ ids: ids, closed: stroke.closed });
+        var count = stroke.closed ? ids.length : ids.length - 1;
+        for (var j = 0; j < count; j++) edges.push([ids[j], ids[(j + 1) % ids.length]]);
+      });
+      shapes[kind] = { points: points, strokes: strokes, edges: edges, extent: extent };
+    });
+    return shapes;
+  }
+  var SHAPES = buildShapes();
+
+  /* ---- Seeded randomness and noise -------------------------------- */
+
+  // A small, fast seeded random number generator (mulberry32).
+  // Returns a function giving numbers in [0, 1). Same seed, same sequence.
+  function makeRandom(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // Classic 3D gradient noise (Ken Perlin's improved noise), shuffled by
+  // the seeded random generator. Returns a function noise(x, y, z) giving
+  // smooth values roughly between -1 and 1.
+  function makeNoise(random) {
+    var perm = new Uint8Array(512), p = [], i;
+    for (i = 0; i < 256; i++) p.push(i);
+    for (i = 255; i > 0; i--) {
+      var j = Math.floor(random() * (i + 1)), tmp = p[i];
+      p[i] = p[j]; p[j] = tmp;
+    }
+    for (i = 0; i < 512; i++) perm[i] = p[i & 255];
+    function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+    function lerp(t, a, b) { return a + t * (b - a); }
+    function grad(hash, x, y, z) {
+      var h = hash & 15, u = h < 8 ? x : y, v = h < 4 ? y : (h === 12 || h === 14 ? x : z);
+      return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+    }
+    return function (x, y, z) {
+      var X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+      x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+      var u = fade(x), v = fade(y), w = fade(z);
+      var A = perm[X] + Y, AA = perm[A] + Z, AB = perm[A + 1] + Z;
+      var B = perm[X + 1] + Y, BA = perm[B] + Z, BB = perm[B + 1] + Z;
+      return lerp(w,
+        lerp(v, lerp(u, grad(perm[AA], x, y, z), grad(perm[BA], x - 1, y, z)),
+                lerp(u, grad(perm[AB], x, y - 1, z), grad(perm[BB], x - 1, y - 1, z))),
+        lerp(v, lerp(u, grad(perm[AA + 1], x, y, z - 1), grad(perm[BA + 1], x - 1, y, z - 1)),
+                lerp(u, grad(perm[AB + 1], x, y - 1, z - 1), grad(perm[BB + 1], x - 1, y - 1, z - 1))));
+    };
+  }
+
+  /* ---- Small helpers --------------------------------------------- */
+
+  function clamp(v, low, high) { return Math.max(low, Math.min(high, v)); }
+  function mix(a, b, t) { return a + (b - a) * t; }
+  function smoothstep(e0, e1, x) { var t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); }
+  // How much of the gap to close this step, for an ease with time constant `tau`.
+  function ease(dt, tau) { return 1 - Math.exp(-dt / Math.max(tau, 0.0001)); }
+  // The shortest signed turn from angle `from` to angle `to`, in radians.
+  function turnBetween(from, to) {
+    var d = (to - from) % (Math.PI * 2);
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    return d;
+  }
+
+  /* ---- The field ---------------------------------------------------- */
+
+  // Create a field on a canvas. Options:
+  //   seed:        number for repeatable runs (default: random per visit)
+  //   settings:    overrides for DEFAULTS
+  //   managed:     true (default) = size the canvas to the window and run
+  //                its own frame loop; false = the host calls resize(),
+  //                step() and paint() itself (used by the viewer)
+  // Returns { settings, step(dt), paint(), resize(w, h), reseed(seed), ... }.
+  function create(canvas, options) {
+    options = options || {};
+    var managed = options.managed !== false;
+    var S = {};
+    Object.keys(DEFAULTS).forEach(function (k) { S[k] = DEFAULTS[k]; });
+    Object.keys(options.settings || {}).forEach(function (k) { S[k] = options.settings[k]; });
+
+    var ctx = canvas.getContext('2d');
+    var random, noise;
+    var W = 0, H = 0;
+    var forms = [];
+    var time = 0;
+    var scrollY = window.scrollY || 0, scrollVelocity = 0, lastScrollY = scrollY;
+    var mouse = { x: -1, y: -1, active: false };
+    var stirs = [];   // swirls the cursor has left: { x, y, strength }
+
+    var heroSvg = managed ? document.querySelector('svg[data-agm-hero]') : null;
+    var bands = managed ? Array.prototype.slice.call(document.querySelectorAll('[data-agm-invert]')) : [];
+
+    // Start (or restart) the random sources from a seed.
+    // Writes: random, noise.
+    function reseed(seed) {
+      random = makeRandom(seed);
+      noise = makeNoise(random);
+    }
+    reseed(options.seed !== undefined ? options.seed : Math.floor(Math.random() * 1e9));
+
+    function between(low, high) { return low + random() * (high - low); }
+
+    /* -- The air -- */
+
+    // The stream function: two octaves of noise over space and time.
+    // The flow is its rotated gradient, so it swirls without sinks.
+    function stream(x, y, t) {
+      var s = S.flowScale, z = t * S.flowChange;
+      return noise(x * s, y * s, z) + 0.45 * noise(x * s * 2.3 + 31.7, y * s * 2.3 - 12.4, z * 1.6 + 7.1);
+    }
+
+    // The air's velocity at (x, y), in px per second: the curl of the
+    // stream function (finite differences), plus any cursor swirls.
+    function air(x, y) {
+      var e = 4, t = time;
+      var dPdy = (stream(x, y + e, t) - stream(x, y - e, t)) / (2 * e);
+      var dPdx = (stream(x + e, y, t) - stream(x - e, y, t)) / (2 * e);
+      // Scale by 1 / flowScale so flowStrength is a speed in px/s whatever
+      // the eddy size.
+      var k = S.flowStrength / S.flowScale;
+      var vx = dPdy * k, vy = -dPdx * k;
+      var r2 = S.stirRadius * S.stirRadius;
+      for (var i = 0; i < stirs.length; i++) {
+        var st = stirs[i], dx = x - st.x, dy = y - st.y;
+        var d2 = dx * dx + dy * dy;
+        if (d2 > r2 * 4) continue;
+        // A small vortex: its speed falls off smoothly with distance.
+        var f = st.strength * Math.exp(-d2 / r2);
+        vx += -dy / S.stirRadius * f;
+        vy += dx / S.stirRadius * f;
+      }
+      return [vx, vy];
+    }
+
+    // How turbulent the air is at (x, y): 0 calm, 1 fully turbulent.
+    function turbulenceAt(x, y) {
+      var s = S.turbulenceScale;
+      var n = noise(x * s + 101.3, y * s - 57.9, time * S.turbulenceChange + 19.2) * 0.5 + 0.5;
+      // `turbulence` sets how much of the page counts as turbulent.
+      var edge = 1 - S.turbulence;
+      return smoothstep(edge - 0.08, edge + 0.08, n);
+    }
+
+    /* -- Letters -- */
+
+    // Make one letter at (x, y), or anywhere if not given.
+    function makeForm(kind, x, y) {
+      kind = kind || KINDS[Math.floor(random() * KINDS.length)];
+      var depth = Math.pow(random(), 0.8);       // 0 far, 1 near; slightly more near ones
+      var base = Math.min(W, H, 900);
+      var height = mix(S.minSize, S.maxSize, depth) * base;
+      var scale = height / 175;                  // px per logo unit; a letter is 175 units tall
+      return {
+        kind: kind,
+        depth: depth,
+        scale: scale,
+        radius: SHAPES[kind].extent * scale,
+        x: x === undefined ? between(0, W) : x,
+        y: y === undefined ? between(0, H) : y,
+        vx: 0, vy: 0,
+        angle: between(-Math.PI, Math.PI),
+        turn: 0,                                  // angular velocity, radians per second
+        lift: S.lift * between(0.5, 1.3),         // this letter's share of the lift
+        unmade: 0,                                // 0 whole, 1 fully apart
+        tint: Math.floor(random() * PALETTE.tints.length),
+        // Some letters are green or pink instead of an indigo tint.
+        accent: random() < S.accentShare ? (random() < 0.5 ? 'green' : 'pink') : null,
+        seed: between(0, 1000),
+        ink: 0,                                   // 1 = full logo ink (hero letters)
+        appear: 1,                                // fade-in on load (hero letters)
+        hero: null                                // hero letters only
+      };
+    }
+
+    // Size the field and set how many letters there are.
+    // Writes: canvas size (when managed), W, H, and the forms list.
+    function resize(width, height) {
+      W = width; H = height;
+      if (managed) {
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        if (W * H * dpr * dpr > 6000000) dpr = 1;   // keep very large screens cheap
+        canvas.width = Math.round(W * dpr);
+        canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      var count = W < 700 ? S.formsNarrow : S.formsWide;
+      // The first three are one of each letter: the hero letters, when
+      // the page has a hero logo.
+      while (forms.length < count) forms.push(makeForm(KINDS[forms.length] || null));
+      forms.length = count;
+    }
+
+    /* -- Hero -- */
+
+    // Where each hero letter belongs right now, in screen pixels, read
+    // from the SVG's position (it moves as the page scrolls).
+    function heroAnchors() {
+      var rect = heroSvg.getBoundingClientRect();
+      if (!rect.width) return null;
+      var scale = rect.width / HERO_VIEWBOX[2], anchors = {};
+      KINDS.forEach(function (kind) {
+        var c = LETTERS[kind].centre;
+        anchors[kind] = {
+          x: rect.left + (c[0] - HERO_VIEWBOX[0]) * scale,
+          y: rect.top + (c[1] - HERO_VIEWBOX[1]) * scale,
+          scale: scale
+        };
+      });
+      return anchors;
+    }
+
+    // Make forms[0..2] the hero letters and hide the SVG they replace.
+    // States: held (on the logo, full ink), loose (in the air),
+    // returning (springing home). Writes: hero state, SVG class.
+    function setUpHero() {
+      if (!heroSvg) return;
+      var anchors = heroAnchors();
+      for (var i = 0; i < KINDS.length; i++) {
+        var f = forms[i];
+        var held = scrollY <= H * S.heroRelease[i];
+        f.hero = { state: held ? 'held' : 'loose' };
+        f.ink = held ? 1 : 0;
+        f.appear = 0;
+        if (held && anchors) {
+          var home = anchors[f.kind];
+          f.x = home.x; f.y = home.y; f.scale = home.scale; f.angle = 0;
+        }
+      }
+      // Hidden by opacity, so screen readers still find the logo's label.
+      heroSvg.classList.add('is-animated');
+    }
+
+    // Advance the hero letters. Writes: their state, position, ink, etc.
+    function updateHero(dt) {
+      var anchors = heroAnchors();
+      if (!anchors) return;
+      var w0 = 2 * Math.PI / S.heroReturn;   // the spring's natural frequency
+      for (var i = 0; i < KINDS.length; i++) {
+        var f = forms[i], hero = f.hero, home = anchors[f.kind];
+        var releaseAt = H * S.heroRelease[i];
+        f.appear = Math.min(1, f.appear + dt / 0.8);   // fade in on page load
+
+        if (hero.state === 'held') {
+          if (scrollY > releaseAt) {
+            // Set loose: a small upward push; the air does the rest.
+            hero.state = 'loose';
+            f.vx = between(-6, 6);
+            f.vy = between(-16, -9);
+            f.turn = between(-0.05, 0.05);
+            continue;
+          }
+          f.x = home.x; f.y = home.y; f.scale = home.scale;
+          f.radius = SHAPES[f.kind].extent * f.scale;
+          f.angle = 0; f.turn = 0; f.vx = 0; f.vy = 0;
+          f.unmade = 0; f.ink = 1;
+        } else if (hero.state === 'loose') {
+          f.ink *= Math.exp(-dt / S.heroFade);
+          // Back near the top: head home. Half the release distance, so a
+          // small scroll back and forth doesn't flicker between states.
+          if (scrollY < releaseAt * 0.5) hero.state = 'returning';
+        } else {
+          if (scrollY > releaseAt) { hero.state = 'loose'; continue; }
+          // A critically damped spring: arrives without overshooting.
+          f.vx += (w0 * w0 * (home.x - f.x) - 2 * w0 * f.vx) * dt;
+          f.vy += (w0 * w0 * (home.y - f.y) - 2 * w0 * f.vy) * dt;
+          f.x += f.vx * dt; f.y += f.vy * dt;
+          var da = turnBetween(f.angle, 0);
+          f.turn += (w0 * w0 * da - 2 * w0 * f.turn) * dt;
+          f.angle += f.turn * dt;
+          f.scale = mix(f.scale, home.scale, ease(dt, S.heroReturn / 4));
+          f.radius = SHAPES[f.kind].extent * f.scale;
+          f.unmade = mix(f.unmade, 0, ease(dt, 0.5));
+          var distance = Math.hypot(home.x - f.x, home.y - f.y);
+          f.ink = Math.max(f.ink, clamp(1 - distance / 160, 0, 1));
+          if (distance < 0.5 && Math.hypot(f.vx, f.vy) < 3 && Math.abs(da) < 0.005) {
+            hero.state = 'held';
+          }
+        }
+      }
+    }
+
+    /* -- Moving the letters -- */
+
+    // Advance one letter riding the air. Writes: its motion and state;
+    // may replace forms[i] with a new letter when one leaves the screen.
+    function updateDrifting(f, i, dt) {
+      var pace = mix(0.55, 1, f.depth);          // far letters move slower
+
+      // Follow the air with inertia, plus lift and a share of the scroll.
+      var v = air(f.x, f.y);
+      var targetX = v[0] * pace;
+      var targetY = v[1] * pace - f.lift * pace - scrollVelocity * S.scrollCarry * mix(0.4, 1, f.depth);
+      var k = ease(dt, S.inertia);
+      f.vx += (targetX - f.vx) * k;
+      f.vy += (targetY - f.vy) * k;
+      f.x += f.vx * dt;
+      f.y += f.vy * dt;
+
+      // Turn with the eddies: sample the air either side of the letter
+      // and read off how it is rotating there (its vorticity).
+      var r = Math.max(24, f.radius * 0.6);
+      var right = air(f.x + r, f.y), left = air(f.x - r, f.y);
+      var below = air(f.x, f.y + r), above = air(f.x, f.y - r);
+      var vorticity = (right[1] - left[1]) / (2 * r) - (below[0] - above[0]) / (2 * r);
+      f.turn += (vorticity * 0.5 * S.spin * pace - f.turn) * ease(dt, S.inertia * 1.5);
+      f.angle += f.turn * dt;
+
+      // Come apart in turbulent air, and near the cursor; close up in calm air.
+      var target = turbulenceAt(f.x, f.y);
+      if (mouse.active) {
+        var dm = Math.hypot(f.x - mouse.x, f.y - mouse.y);
+        target = Math.max(target, 1 - smoothstep(f.radius * 0.6, f.radius * 1.8, dm));
+      }
+      f.unmade += (target - f.unmade) * ease(dt, S.looseness);
+
+      // Leaving the screen: letters that float off the top come back in
+      // from below at a new spot; sideways exits wrap round. Ordinary
+      // letters come back as a new letter (new kind, size and depth).
+      var pad = f.radius * 1.3;
+      var wrapped = false;
+      if (f.y < -pad) { f.y = H + pad; f.x = between(0, W); wrapped = true; }
+      else if (f.y > H + pad) { f.y = -pad; f.x = between(0, W); wrapped = true; }
+      if (f.x < -pad) { f.x = W + pad; wrapped = true; }
+      else if (f.x > W + pad) { f.x = -pad; wrapped = true; }
+      if (wrapped && i >= KINDS.length) {
+        var next = makeForm(null, f.x, f.y);
+        next.vx = f.vx; next.vy = f.vy;
+        forms[i] = next;
+      }
+    }
+
+    // Advance the whole field by dt seconds.
+    function step(dt) {
+      dt = clamp(dt, 0, 0.05);   // a background tab mustn't make things jump
+      time += dt;
+
+      // Scroll speed, smoothed so a jumpy mouse wheel reads as a glide.
+      if (managed) {
+        scrollY = window.scrollY || 0;
+        var raw = dt > 0 ? (scrollY - lastScrollY) / dt : 0;
+        lastScrollY = scrollY;
+        scrollVelocity += (raw - scrollVelocity) * ease(dt, 0.25);
+      }
+
+      // Cursor swirls fade over a couple of seconds.
+      for (var s = stirs.length - 1; s >= 0; s--) {
+        stirs[s].strength *= Math.exp(-dt / 1.6);
+        if (Math.abs(stirs[s].strength) < 0.5) stirs.splice(s, 1);
+      }
+
+      if (heroSvg) updateHero(dt);
+      for (var i = 0; i < forms.length; i++) {
+        var f = forms[i];
+        if (!f.hero || f.hero.state === 'loose') updateDrifting(f, i, dt);
+      }
+    }
+
+    /* -- Drawing -- */
+
+    // Draw one letter in a palette. Whole letters are joined paths with
+    // the faintest tremble at their corners. As a letter comes apart, each
+    // edge shortens from both ends, drifts outward, bows into a curve and
+    // wanders on its own noise.
+    function drawForm(f, palette) {
+      var shape = SHAPES[f.kind], s = f.scale, un = f.unmade;
+      var held = f.hero && f.hero.state === 'held';
+      var depthAlpha = mix(0.45, 1, f.depth);
+      var boost = f.accent ? palette.boost[f.accent] : 1;
+      var alpha = mix(Math.min(1, S.opacity * boost) * depthAlpha * (1 - un * 0.5), 1, f.ink) * f.appear;
+      if (alpha < 0.004) return;
+      var tint = f.accent ? palette.accents[f.accent] : palette.tints[f.tint];
+      var colour = [0, 1, 2].map(function (c) { return Math.round(mix(tint[c], palette.ink[c], f.ink)); });
+
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.angle);
+      ctx.strokeStyle = 'rgba(' + colour.join(',') + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = mix(1.1, S.heroLineWidth, f.ink);
+      ctx.lineJoin = 'miter';
+      ctx.lineCap = 'round';
+
+      // Every corner trembles a little on its own noise; more as it loosens.
+      var t = time * 0.35;
+      var wobble = held ? 0 : S.breathe + un * f.radius * 0.07;
+      var pts = shape.points.map(function (p, n) {
+        return [
+          p[0] * s + noise(f.seed, n * 0.37, t) * wobble,
+          p[1] * s + noise(f.seed + 50, n * 0.37, t) * wobble
+        ];
+      });
+
+      ctx.beginPath();
+      if (un < 0.01) {
+        shape.strokes.forEach(function (stroke) {
+          stroke.ids.forEach(function (id, n) {
+            if (n === 0) ctx.moveTo(pts[id][0], pts[id][1]);
+            else ctx.lineTo(pts[id][0], pts[id][1]);
+          });
+          if (stroke.closed) ctx.closePath();
+        });
+      } else {
+        // Ease the coming-apart in, so the first loosening is gentle.
+        var u = un * un * (3 - 2 * un);
+        var gap = u * 0.38, push = u * f.radius * 0.42, bow = u * 0.22;
+        shape.edges.forEach(function (edge, n) {
+          var a = pts[edge[0]], b = pts[edge[1]];
+          var mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+          var len = Math.hypot(mx, my) || 1;
+          // Each edge drifts outward by its own amount.
+          var drift = push * (0.6 + 0.8 * (noise(f.seed + n * 1.3, t * 0.7, 3.1) * 0.5 + 0.5));
+          var ox = mx / len * drift, oy = my / len * drift;
+          var ax = a[0] + (b[0] - a[0]) * gap * 0.5 + ox, ay = a[1] + (b[1] - a[1]) * gap * 0.5 + oy;
+          var bx = b[0] - (b[0] - a[0]) * gap * 0.5 + ox, by = b[1] - (b[1] - a[1]) * gap * 0.5 + oy;
+          // Bow the edge: a control point pushed sideways on noise.
+          var ex = bx - ax, ey = by - ay;
+          var side = noise(f.seed - n * 0.9, t * 0.6, 8.7) * bow;
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo((ax + bx) / 2 - ey * side, (ay + by) / 2 + ex * side, bx, by);
+        });
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Paint one inverted band: its indigo, then the letters in grey,
+    // clipped to the band so nothing spills over its edges.
+    function paintInverted(element) {
+      var band = element.getBoundingClientRect();
+      if (band.bottom <= 0 || band.top >= H) return;   // off screen
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(band.left, band.top, band.width, band.height);
+      ctx.clip();
+      ctx.fillStyle = 'rgb(' + INVERTED.background.join(',') + ')';
+      ctx.fillRect(band.left, band.top, band.width, band.height);
+      for (var i = 0; i < forms.length; i++) drawForm(forms[i], INVERTED);
+      ctx.restore();
+    }
+
+    // Draw the field: everything in the usual colours, then each inverted
+    // band on screen. Far letters first, so near ones sit on top.
+    function paint() {
+      ctx.clearRect(0, 0, W, H);
+      var order = forms.slice().sort(function (a, b) { return a.depth - b.depth; });
+      for (var i = 0; i < order.length; i++) drawForm(order[i], PALETTE);
+      bands.forEach(paintInverted);
+    }
+
+    /* -- Input -- */
+
+    // The cursor stirs the air: as it moves it leaves small swirls whose
+    // strength follows how fast it was moving. Writes: mouse, stirs.
+    function onPointer(x, y) {
+      var speed = mouse.active ? Math.hypot(x - mouse.x, y - mouse.y) : 0;
+      mouse.x = x; mouse.y = y; mouse.active = true;
+      if (speed > 2) {
+        var last = stirs[stirs.length - 1];
+        if (!last || Math.hypot(last.x - x, last.y - y) > S.stirRadius * 0.5) {
+          stirs.push({ x: x, y: y, strength: Math.min(S.stir, speed * 1.5) * (random() < 0.5 ? -1 : 1) });
+          if (stirs.length > 6) stirs.shift();
+        }
+      }
+    }
+
+    var field = {
+      settings: S,
+      step: step,
+      paint: paint,
+      resize: resize,
+      // Restart with a new seed: new noise, new letters. Writes: everything.
+      reseed: function (seed) { reseed(seed); forms = []; time = 0; stirs = []; resize(W, H); },
+      pointer: onPointer,
+      pointerLeave: function () { mouse.active = false; },
+      // Read-only view of the letters, for the viewer and tests.
+      letters: function () { return forms.slice(); }
+    };
+
+    if (managed) {
+      window.addEventListener('resize', function () { resize(window.innerWidth, window.innerHeight); });
+      window.addEventListener('pointermove', function (e) { onPointer(e.clientX, e.clientY); });
+      document.addEventListener('pointerleave', field.pointerLeave);
+      bands.forEach(function (band) { band.classList.add('is-animated'); });
+      resize(window.innerWidth || canvas.clientWidth || 1200, window.innerHeight || canvas.clientHeight || 800);
+      setUpHero();
+      var last = 0;
+      var frame = function (now) {
+        step(last ? (now - last) / 1000 : 0);
+        last = now;
+        paint();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    }
+    return field;
+  }
+
+  window.AGMField = { create: create, DEFAULTS: DEFAULTS };
+
+  // On a page with the background canvas, start automatically.
+  function boot() {
+    var canvas = document.querySelector('canvas[data-agm-bg]');
+    if (canvas && canvas.getContext) create(canvas);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
